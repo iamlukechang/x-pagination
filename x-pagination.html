@@ -1,0 +1,89 @@
+<!--
+/**
+ * <x-pagination></x-pagination>
+ *
+ * @author iamlukechang@gmail.com (Luke Chang)
+ */
+-->
+
+<link rel="import" href="../polymer/polymer.html" />
+<link rel="import" href="../core-icon-button/core-icon-button.html" />
+
+<polymer-element name="x-pagination" attributes="attachedArray paginatedArray pageSize disabled">
+  <template>
+    <core-icon-button icon="chevron-left" title="previous" on-click="{{selectPrev}}" disabled?="{{disabled}}"></core-icon-button>
+    <input type="number" value="{{currentPageNum}}" min="1" max="{{pageCount}}" disabled?="{{disabled}}" /> / <span>{{pageCount}}</span>
+    <core-icon-button icon="chevron-right" title="next" on-click="{{selectNext}}" disabled?="{{disabled}}"></core-icon-button>
+  </template>
+  <script>
+    Polymer({
+      attachedArray: [],
+      paginatedArray: [],
+      currentPageNum: 1,
+      pageSize: 20,
+      pageCount: 0,
+      disabled: false,
+
+      ready: function () {
+        this.refresh();
+      },
+
+      currentPageNumChanged: function (oldVal, newVal) {
+        if (newVal < 1) {
+          this.currentPageNum = 1;
+          this.fire('error');
+        } else if (newVal > this.pageCount) {
+          this.currentPageNum = this.pageCount;
+          this.fire('error');
+        } else {
+          this.paginatedArray = (this.pageCount == 1) ?
+              this.attachedArray.slice() :
+              this.attachedArray.slice(
+                  (newVal - 1) * this.pageSize,
+                  newVal * this.pageSize);
+        }
+      },
+
+      pageSizeChanged: function (oldVal, newVal) {
+        if (newVal < 0) {
+          console.error('The pageSize cannot be smaller than 0');
+          this.pageSize = oldVal;
+        } else {
+          this.refresh();
+        }
+      },
+
+      refresh: function () {
+        this.pageCount = (this.pageSize > 0 && this.attachedArray.length > 0) ?
+            Math.ceil(this.attachedArray.length / this.pageSize) : 1;
+        this.currentPageNumChanged(null, this.currentPageNum);
+      },
+
+      attachedArrayChanged: function () {
+        this.refresh();
+      },
+
+      select: function (pageNum) {
+        this.currentPageNum = pageNum;
+
+        return  this.paginatedArray;
+      },
+
+      selectNext: function () {
+        if (this.currentPageNum < this.pageCount) this.currentPageNum++;
+      },
+
+      selectPrev: function () {
+        if (this.currentPageNum > 1) this.currentPageNum--;
+      },
+
+      selectFirst: function () {
+        this.currentPageNum = 1;
+      },
+
+      selectLast: function () {
+        this.currentPageNum = this.pageCount;
+      }
+    });
+  </script>
+</polymer-element>
